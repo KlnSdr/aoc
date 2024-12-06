@@ -9,10 +9,21 @@
 (defvar width (length (first data)))
 
 (defun ~ (a b)
-  (reduce #'cons
-          a
-          :initial-value b
-          :from-end t)
+  (nconc (copy-list a) b)
+  )
+
+(defun list-to-2d-array (lst)
+  (make-array (list (length lst)
+                    (length (first lst))
+                    )
+              :initial-contents lst
+              )
+  )
+
+(defun list-to-array (lst)
+  (make-array (list (length lst))
+              :initial-contents lst
+              )
   )
 
 (defun walk (pos dir)
@@ -20,7 +31,19 @@
   )
 
 (defun is-wall (pos walls)
-  (not (eq nil (member pos walls :test #'equal)))
+  (let
+    ()
+    (loop for i from 0 to (1- (first (array-dimensions walls))) do
+          (when
+            (and
+              (eq (first pos) (first (aref walls i)))
+              (eq (second pos) (second (aref walls i)))
+              )
+            (return-from is-wall T)
+            )
+          )
+    nil
+    )
   )
 
 (defun turn (dir)
@@ -30,18 +53,25 @@
     )
   )
 
-(defun is-loop (path)
-  (if (< (length path) 4)
+(defun is-loop (steps path)
+  (if (< (first (array-dimensions path)) 4)
     nil
     (let
       (
-       (pastPath (cdr (cdr path)))
-       (toFind (list (car path) (car (cdr path))))
+       (maxI (- (first (array-dimensions path)) 2))
        )
-      (loop for i from 0 to (- (length pastPath) 2) do
+      (loop for i from 0 to maxI do
             (when
-              (equal (list (nth i pastPath)
-                           (nth (1+ i) pastPath)) toFind)
+              (equal (list
+                       (list
+                         (aref path i 0)
+                         (aref path i 1)
+                         )
+                       (list
+                         (aref path (1+ i) 0)
+                         (aref path (1+ i) 1)
+                         )
+                       ) steps)
               (return-from is-loop T)
               )
             )
@@ -69,7 +99,11 @@
               )
             (return-from contains-loop nil)
             )
-          (when (is-loop visited)
+          ; (write (car visited))
+          ; (write (car (cdr visited)))
+          ; (terpri)
+          ; (terpri)
+          (when (is-loop (list (car visited) (car (cdr visited))) (list-to-2d-array (cdr (cdr visited))))
             (return-from contains-loop T)
             )
 
@@ -85,26 +119,47 @@
   )
 
 (defun solve (walls start visitedPositions)
-  (let
-    ((loopCount 0))
-    (loop for pos in visitedPositions do
-      (write pos)
-      (terpri)
-      (when (eq T (contains-loop (~ (list pos) walls) start))
-        (incf loopCount)
-        )
-    )
+  (let*
+    (
+     (loopCount 0)
+     (arrWalls (list-to-array walls))
+     (arrVisitedPositions (list-to-array visitedPositions))
+     (arrNewWalls (make-array (1+(length arrWalls)) :initial-contents (~ walls '('(-1 -1)))))
+     (wallCount (length arrWalls))
+     )
+
+    (map nil
+         (lambda (pos)
+           (let ()
+             (write pos)
+             (terpri)
+             (setf (aref arrNewWalls wallCount) pos)
+             (when (eq T (contains-loop arrNewWalls start))
+               (incf loopCount)
+               )
+             pos
+             )
+           )
+         arrVisitedPositions)
+    ; (loop for pos in visitedPositions do
+    ;   (write pos)
+    ;   (terpri)
+    ;   (when (eq T (contains-loop (~ (list pos) walls) start))
+    ;     (incf loopCount)
+    ;     )
+    ; )
     loopCount
     )
-  )
+)
 
 (defun get-walls-from-line (line)
   (let
     (
      (xs '())
      (start '())
+     (maxI (1- (length line)))
      )
-    (loop for i from 0 to (1- (length line)) do
+    (loop for i from 0 to maxI do
           (when (eq (char line i) #\#)
             (push i xs)
             )
@@ -158,8 +213,8 @@
     (~
       (preprocess data)
       (list (partOne:run))
+      )
     )
   )
-)
 (terpri)
 
