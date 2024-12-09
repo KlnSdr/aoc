@@ -45,23 +45,23 @@
 (defun solve (files freeSpace)
   (let*
     (
-     (memSpace (build-mem-space files freeSpace))
+     (memSpace (apply #'vector (build-mem-space files freeSpace)))
      (l 0)
      (r (1- (length memSpace)))
      (res 0)
      )
     (loop do
-          (when (= (nth l memSpace) -1)
+          (when (= (aref memSpace l) -1)
             (return)
             )
           (incf l)
           )
     (loop do
-          (rotatef (nth l memSpace) (nth r memSpace))
+          (rotatef (aref memSpace l) (aref memSpace r))
 
           (incf l)
           (loop do
-                (when (= (nth l memSpace) -1)
+                (when (= (aref memSpace l) -1)
                   (return)
                   )
                 (incf l)
@@ -70,7 +70,7 @@
           (decf r)
 
           (loop do
-                (when (not (= (nth r memSpace) -1))
+                (when (not (= (aref memSpace r) -1))
                   (return)
                   )
                 (decf r)
@@ -82,8 +82,8 @@
           )
 
     (loop for i from 0 to (1- (length memSpace)) do
-          (when (not (= -1 (nth i memSpace)))
-            (incf res (* i (nth i memSpace)))
+          (when (not (= -1 (aref memSpace i)))
+            (incf res (* i (aref memSpace i)))
             )
           )
     res
