@@ -39,19 +39,19 @@
   (if (= stone 0)
     '(1)
     (applyRules2 stone)
+    )
   )
-)
 
 (defun applyRules2 (stone)
   (if (= 0(mod (numdigits stone) 2))
     (split-even-integer stone)
     (* 2024 stone)
+    )
   )
-)
 
 (defun blink(stones)
   (alexandria:flatten (mapcar #'applyRules stones))
-)
+  )
 
 (defun solve (lst)
   (let
